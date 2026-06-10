@@ -1,0 +1,93 @@
+# Home Steward Agent — 一键部署
+# docker compose up -d
+
+services:
+  # ============================================================
+  # FastAPI 后端
+  # ============================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./data:/data
+      - ./skills:/skills
+      - ./config:/config
+    environment:
+      - DATABASE_URL=sqlite:////data/steward.db
+      - MQTT_HOST=mqtt
+      - MQTT_PORT=1883
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - STEWARD_DATA_DIR=/data
+      - STEWARD_MEMORY_DIR=/data/memory
+    depends_on:
+      mqtt:
+        condition: service_started
+      ollama:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ============================================================
+  # MQTT Broker (Mosquitto)
+  # ============================================================
+  mqtt:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: unless-stopped
+
+  # ============================================================
+  # Ollama 本地 LLM
+  # ============================================================
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./data/ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+
+  # ============================================================
+  # Next.js 前端
+  # ============================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped

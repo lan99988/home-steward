@@ -35,3 +35,30 @@ logs/
 
 # Codegraph
 .codegraph/
+
+# MQTT
+mosquitto/log/
+mosquitto/data/
+
+# Data directory
+/data/
+!data/.gitkeep
+
+# OS temp files
+tmp/
+*.tmp
+
+# Skill archives
+skills/user-installed/*.zip
+
+# CMake / build
+cmake-build-*/
+
+# Backend runtime data
+backend/data/*.db
+backend/data/active_model.json
+backend/data/memory/
+
+# Backup files
+*.bak
+*.bak[0-9]
