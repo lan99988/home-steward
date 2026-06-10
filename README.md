@@ -10,7 +10,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/26326Mm/home-steward?style=social)](https://github.com/26326Mm/home-steward)
+[![GitHub Stars](https://img.shields.io/github/stars/26326Mm/home-steward?style=social)](https://github.com/lan99988/home-steward)
 
 ---
 
@@ -62,7 +62,7 @@
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/26326Mm/home-steward.git
+git clone https://github.com/lan99988/home-steward.git
 cd home-steward
 
 # 2. 安装依赖
