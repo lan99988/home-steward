@@ -42,7 +42,61 @@
 | **using-superpowers** | 会话开始时调用——确保所有 Skill 被正确使用 | `/using-superpowers` |
 | **using-git-worktrees** | 使用 Git Worktree 隔离工作区 | `/using-git-worktrees` |
 
-## 🚀 gstack 工作流
+
+
+## 🎨 设计/UI Skills（impeccable）
+
+
+
+| Skill | 用途 | 调用方式 |
+
+|-------|------|---------|
+
+| **impeccable** | 设计/迭代/审计前端界面——涵盖 UI 设计全流程 | `/impeccable` |
+
+| craft | 端到端构建功能（从设计到代码） | `/impeccable craft <feature>` |
+
+| shape | 写代码前规划 UX/UI 方案 | `/impeccable shape <feature>` |
+
+| critique | UX 设计评审（含启发式评分） | `/impeccable critique <target>` |
+
+| audit | 技术质量检查（无障碍/性能/响应式） | `/impeccable audit <target>` |
+
+| polish | 发布前最终质量检查 | `/impeccable polish <target>` |
+
+| bolder | 让平淡的设计更大胆 | `/impeccable bolder <target>` |
+
+| quieter | 调低过度刺激的设计 | `/impeccable quieter <target>` |
+
+| distill | 简化设计，去除冗余 | `/impeccable distill <target>` |
+
+| harden | 生产级加固（错误态/国际化/边界情况） | `/impeccable harden <target>` |
+
+| animate | 添加意图驱动的动画效果 | `/impeccable animate <target>` |
+
+| colorize | 为单色 UI 添加策略性色彩 | `/impeccable colorize <target>` |
+
+| typeset | 改善排版层级和字体 | `/impeccable typeset <target>` |
+
+| layout | 修复间距、节奏和视觉层级 | `/impeccable layout <target>` |
+
+| delight | 添加个性和令人难忘的细节 | `/impeccable delight <target>` |
+
+| clarify | 改进 UX 文案、标签和错误信息 | `/impeccable clarify <target>` |
+
+| adapt | 适配不同设备和屏幕尺寸 | `/impeccable adapt <target>` |
+
+| live | 浏览器内视觉变体模式 | `/impeccable live` |
+
+| init | 初始化项目设计上下文 | `/impeccable init` |
+
+
+
+> 首次使用前需运行 `/impeccable init` 初始化设计上下文。
+
+
+
+## 🚀 gstack
 
 本项目使用 **gstack** 工作流框架。gstack skills 已配置到项目设置中，团队成员可直接通过 `/` 命令使用。
 
