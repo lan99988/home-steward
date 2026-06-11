@@ -408,6 +408,86 @@
       border-color: var(--primary);
     }
 
+    /* ===== Voice Feedback ===== */
+    .voice-waves {
+      display: none;
+      align-items: center;
+      gap: 3px;
+      height: 24px;
+      margin-left: 4px;
+    }
+    .voice-waves.active { display: inline-flex; }
+    .voice-waves span {
+      display: block;
+      width: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+      animation: wave 0.6s ease-in-out infinite alternate;
+    }
+    .voice-waves span:nth-child(1) { height: 8px; animation-delay: 0s; }
+    .voice-waves span:nth-child(2) { height: 16px; animation-delay: 0.15s; }
+    .voice-waves span:nth-child(3) { height: 20px; animation-delay: 0.3s; }
+    .voice-waves span:nth-child(4) { height: 12px; animation-delay: 0.45s; }
+    .voice-waves span:nth-child(5) { height: 18px; animation-delay: 0.2s; }
+    @keyframes wave {
+      0% { transform: scaleY(0.5); }
+      100% { transform: scaleY(1); }
+    }
+
+    /* ===== Comfort Suggestions ===== */
+    .comfort-section { margin-top: 18px; }
+    .comfort-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--accent-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--accent-border);
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: var(--ink);
+    }
+    .comfort-card .cf-icon { color: var(--accent); flex-shrink: 0; }
+    .comfort-card .cf-msg { flex: 1; }
+    .comfort-card .cf-dismiss {
+      cursor: pointer; color: var(--subtle); flex-shrink: 0;
+      background: none; border: none; padding: 2px; font-size: 1rem;
+    }
+    .comfort-card .cf-dismiss:hover { color: var(--ink); }
+    .comfort-empty {
+      text-align: center; padding: 16px; color: var(--subtle); font-size: 0.82rem;
+    }
+
+    /* ===== Reminders ===== */
+    .reminder-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-light);
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+    .reminder-card .rm-info { flex: 1; min-width: 0; }
+    .reminder-card .rm-text {
+      font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .reminder-card .rm-cron {
+      font-size: 0.7rem; color: var(--subtle); margin-top: 2px;
+    }
+    .reminder-card .rm-delete {
+      cursor: pointer; color: var(--red); background: none; border: none;
+      padding: 6px; border-radius: var(--radius-sm); font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+    .reminder-card .rm-delete:hover { background: var(--red-bg); }
+    .reminder-empty {
+      text-align: center; padding: 16px; color: var(--subtle); font-size: 0.82rem;
+    }
+
     /* ===== Diary ===== */
     .diary-box {
       background: var(--surface);
@@ -698,6 +778,10 @@
     <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="6 9 12 15 18 9"/>
     </symbol>
+    <!-- 加号 -->
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </symbol>
     <!-- 更多图标：灯泡（已定义）snow（已定义）window（已定义）plug（已定义） -->
   </svg>
 
@@ -774,6 +858,9 @@
             ontouchstart="startVoice()" ontouchend="stopVoice()"
             title="按住说话，松开发送">
             <svg class="icon" id="voiceIcon"><use href="#i-mic"/></svg>
+            <span class="voice-waves" id="voiceWaves">
+              <span></span><span></span><span></span><span></span><span></span>
+            </span>
           </button>
           <button class="cmd-send" onclick="sendCommand()">
             发送
@@ -812,6 +899,40 @@
             小蜗还没有做任何事情 …
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ==================== COMFORT ==================== -->
+    <section class="section comfort-section" id="comfortSection">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-thermo"/></svg>
+        小蜗的舒适提醒
+        <button class="cf-dismiss" onclick="loadComfort()" style="margin-left:auto;font-size:0.8rem;color:var(--primary);background:none;border:none;cursor:pointer;">刷新</button>
+      </div>
+      <div id="comfortPanel">
+        <div class="comfort-empty">正在检测室内舒适度 …</div>
+      </div>
+    </section>
+
+    <!-- ==================== REMINDERS ==================== -->
+    <section class="section" id="reminderSection">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-journal"/></svg>
+        我的提醒
+        <button onclick="loadReminders()" style="margin-left:auto;font-size:0.8rem;color:var(--primary);background:none;border:none;cursor:pointer;">刷新</button>
+      </div>
+      <div class="cmd-box" style="margin-bottom:12px;">
+        <div class="cmd-row">
+          <input id="reminderInput" type="text" placeholder="试试：每天8点开灯 / 每晚10点关空调…"
+            onkeydown="if(event.key==='Enter') createReminder()" />
+          <button class="cmd-send" onclick="createReminder()">
+            创建
+            <svg class="icon-sm"><use href="#i-plus"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="reminderPanel">
+        <div class="reminder-empty">正在加载提醒 …</div>
       </div>
     </section>
 
@@ -1152,6 +1273,7 @@
         if (isRecording) return;
         isRecording = true;
         voiceBtn.classList.add('recording');
+        document.getElementById('voiceWaves').classList.add('active');
         try {
           recognition = new SpeechRecognition();
           recognition.lang = 'zh-CN';
@@ -1174,6 +1296,7 @@
       window.stopVoice = function() {
         isRecording = false;
         voiceBtn.classList.remove('recording');
+        document.getElementById('voiceWaves').classList.remove('active');
         if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
       };
     } else {
@@ -1182,12 +1305,108 @@
     }
 
     // ============================================================
+    //  COMFORT SUGGESTIONS
+    // ============================================================
+
+    async function loadComfort() {
+      const panel = document.getElementById('comfortPanel');
+      try {
+        const res = await fetch(`${API}/api/health/comfort`);
+        const data = await res.json();
+        const suggestions = data.suggestions || [];
+        if (suggestions.length === 0) {
+          panel.innerHTML = '<div class="comfort-empty">✨ 一切舒适，小蜗没有需要提醒的</div>';
+          return;
+        }
+        panel.innerHTML = suggestions.map(s => `
+          <div class="comfort-card" data-rule="${s.rule_name}">
+            <span class="cf-icon">${icon('thermo')}</span>
+            <span class="cf-msg">${s.polished_message || s.message}</span>
+            <button class="cf-dismiss" onclick="this.parentElement.remove()">✕</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        panel.innerHTML = '<div class="comfort-empty">⚠️ 舒适度检测暂不可用</div>';
+      }
+    }
+
+    // ============================================================
+    //  REMINDERS
+    // ============================================================
+
+    async function loadReminders() {
+      const panel = document.getElementById('reminderPanel');
+      try {
+        const res = await fetch(`${API}/api/reminders/`);
+        const data = await res.json();
+        const reminders = data.reminders || [];
+        if (reminders.length === 0) {
+          panel.innerHTML = '<div class="reminder-empty">📌 还没有提醒，试试输入「每晚10点关灯」</div>';
+          return;
+        }
+        panel.innerHTML = reminders.map(r => `
+          <div class="reminder-card" data-id="${r.id}">
+            <div class="rm-info">
+              <div class="rm-text">${escapeHtml(r.raw_text)}</div>
+              <div class="rm-cron">⏰ ${r.cron || '—'}  ·  ${r.created_at || ''}</div>
+            </div>
+            <button class="rm-delete" onclick="deleteReminder('${r.id}')">删除</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        panel.innerHTML = '<div class="reminder-empty">⚠️ 加载提醒失败</div>';
+      }
+    }
+
+    async function createReminder() {
+      const input = document.getElementById('reminderInput');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      document.getElementById('reminderPanel').innerHTML = '<div class="reminder-empty">⏳ 正在解析 …</div>';
+      try {
+        const res = await fetch(`${API}/api/reminders/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({text}),
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadReminders();
+          showFeedback('reminderPanel', '✅ ' + data.message, 'ok');
+        } else {
+          showFeedback('reminderPanel', '❌ ' + data.message, 'err');
+        }
+      } catch (e) {
+        showFeedback('reminderPanel', '❌ 创建提醒失败', 'err');
+      }
+    }
+
+    async function deleteReminder(id) {
+      try {
+        const res = await fetch(`${API}/api/reminders/${id}`, {method: 'DELETE'});
+        if (res.ok) await loadReminders();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ============================================================
     //  INIT
     // ============================================================
     loadDevices();
     loadHealth();
+    loadComfort();
+    loadReminders();
     setInterval(loadHealth, 10000);
     setInterval(loadDevices, 15000);
+    setInterval(loadComfort, 60000);  // 每分钟检查舒适度
   </script>
 </body>
 </html>

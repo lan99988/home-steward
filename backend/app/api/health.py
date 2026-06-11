@@ -82,3 +82,33 @@ async def health_detailed():
             "free": f"{disk.free / (1024**3):.1f}GB",
         },
     }
+
+
+@router.get("/comfort")
+async def check_comfort():
+    """舒适度检测——检查所有设备是否偏离舒适区"""
+    from app.execution.comfort import comfort_engine
+
+    if not registry:
+        return {"suggestions": []}
+
+    device_statuses = {}
+    for dev_id, dev in registry.devices.items():
+        try:
+            status = await dev.get_status()
+            device_statuses[dev_id] = status
+        except Exception:
+            pass
+
+    suggestions = comfort_engine.check_all(device_statuses)
+    return {
+        "suggestions": [
+            {
+                "rule_name": s.rule_name,
+                "device_id": s.device_id,
+                "message": s.message,
+                "polished_message": s.polished_message or s.message,
+            }
+            for s in suggestions
+        ]
+    }
