@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "unit: Unit tests for individual modules",
+    "integration: Integration tests across multiple modules",
+    "slow: Tests that take longer than 5 seconds",
+]
+
+[tool.coverage.run]
+source = ["app/skill"]
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 85  # v1.1: 11/11 modules at 87-99% (total 94%). Increase to 85 as new baseline.
+show_missing = true
+skip_covered = false
