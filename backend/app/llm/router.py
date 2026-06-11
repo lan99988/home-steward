@@ -51,6 +51,24 @@ class LatencyRouter:
         logger.info(f"🔮 [深度通道] {elapsed:.0f}ms → 无法解析")
         return Channel.DEEP, None
 
+    async def route_to_llm(self, text: str) -> Tuple[Channel, Optional[Dict[str, Any]]]:
+        """直接走 LLM 通道（Express 已经试过，不再重复）"""
+        start = time.time()
+
+        # 标准通道：本地小模型
+        intent = await self.standard.parse_intent(text)
+        if intent and intent.get("intent") != "unknown":
+            elapsed = (time.time() - start) * 1000
+            self._record(Channel.STANDARD, elapsed)
+            logger.info(f"🧠 [LLM通道] {elapsed:.0f}ms → {intent}")
+            return Channel.STANDARD, intent
+
+        # 无法解析
+        elapsed = (time.time() - start) * 1000
+        self._record(Channel.DEEP, elapsed)
+        logger.info(f"🔮 [LLM通道] {elapsed:.0f}ms → 无法解析")
+        return Channel.DEEP, None
+
     def _record(self, channel: Channel, elapsed_ms: float):
         self.stats[channel]["count"] += 1
         self.stats[channel]["total_ms"] += elapsed_ms

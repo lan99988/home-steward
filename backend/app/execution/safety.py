@@ -35,8 +35,8 @@ class SafetyLayer:
             logger.warning(f"❌ 非法指令类型: {intent_type}")
             return None
 
-        # 2. 批量操作特殊处理
-        if intent_type == "all_lights":
+        # 2. 场景/批量操作特殊处理（无具体设备）
+        if intent_type in ("all_lights", "set_scene"):
             return intent
 
         # 3. 设备解析
@@ -79,6 +79,9 @@ class SafetyLayer:
 
         if intent_type == "all_lights":
             return await self._execute_all_lights(intent.get("action", "turn_on"))
+
+        if intent_type == "set_scene":
+            return await self._execute_scene(intent.get("scene", ""))
 
         device = self.registry.get(device_id)
         if not device:
@@ -127,3 +130,27 @@ class SafetyLayer:
             results.append({"device": device.device_id, "success": success})
         return {"success": all(r["success"] for r in results),
                 "results": results, "intent": "all_lights"}
+
+    async def _execute_scene(self, scene_name: str) -> Dict:
+        """执行场景模式"""
+        from app.execution.bootstrap import BOOTSTRAP_SCENARIOS
+        scene = BOOTSTRAP_SCENARIOS.get(scene_name)
+        if not scene:
+            logger.warning(f"未知场景: {scene_name}")
+            return {"success": False, "error": f"未知场景: {scene_name}"}
+
+        results = []
+        for step in scene.steps:
+            validated = self.validate(step)
+            if validated:
+                result = await self.execute(validated)
+                results.append(result)
+            else:
+                results.append({"error": f"校验失败: {step}", "success": False})
+
+        return {
+            "scenario": scene_name,
+            "results": results,
+            "success": all(r.get("success", False) for r in results),
+            "intent": "set_scene",
+        }

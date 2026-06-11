@@ -35,7 +35,7 @@ class LocalLLM:
     def __init__(self, base_url: str = None, model: str = None):
         self.base_url = base_url or settings.ollama_base_url
         self.model = model or self._resolve_model()
-        self.client = httpx.AsyncClient(timeout=30.0)
+        self.client = httpx.AsyncClient(timeout=120.0)
 
     def _resolve_model(self) -> str:
         """从配置文件或自动探测获取当前激活的模型"""
@@ -56,9 +56,9 @@ class LocalLLM:
                     "prompt": prompt,
                     "stream": False,
                     "temperature": 0.1,
-                    "options": {"num_predict": 128},
+                    "options": {"num_predict": 2048},
                 },
-                timeout=30.0,
+                timeout=120.0,
             )
             resp.raise_for_status()
             result = resp.json()

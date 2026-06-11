@@ -95,6 +95,15 @@ async def lifespan(app: FastAPI):
     from app.user.profiles import UserManager
     users_api.user_manager = UserManager()
 
+    import app.api.reminders as reminders_api
+    from app.execution.reminder import ReminderService
+    reminder_svc = ReminderService(local_llm)
+    from app.execution.reminder import reminder_service as _rs
+    # 注入全局提醒服务
+    import app.execution.reminder as reminder_mod
+    reminder_mod.reminder_service = reminder_svc
+    reminders_api.reminder_service = reminder_svc
+
     logger.info("🐌 Home Steward Agent 就绪！")
     logger.info(f"  前端: http://localhost:8000/")
     logger.info(f"  API:  http://localhost:8000/docs")
@@ -131,12 +140,16 @@ import app.api.skills as skills_api
 import app.api.memory as memory_api
 import app.api.health as health_api
 import app.api.users as users_api
+import app.api.stt as stt_api
+import app.api.reminders as reminders_api
 
 app.include_router(devices_api.router)
 app.include_router(skills_api.router)
 app.include_router(memory_api.router)
 app.include_router(health_api.router)
 app.include_router(users_api.router)
+app.include_router(stt_api.router)
+app.include_router(reminders_api.router)
 
 # ===== 前端界面（static mount 必须在最后） =====
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
