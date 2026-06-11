@@ -3,201 +3,1002 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🐌 Home Steward Agent</title>
+  <title>Home Steward · 小蜗管家</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* =========================================================
+       品牌配色 — 苔藓庭院
+       Seed: oklch(0.400 0.106 150.0)
+       Restrained · warm tinted surface
+       ========================================================= */
+    :root {
+      --bg: oklch(0.97 0.012 75);
+      --bg-pattern: oklch(0.93 0.012 75 / 0.35);
+      --surface: oklch(0.935 0.016 75);
+      --surface-hover: oklch(0.91 0.018 75);
+      --border: oklch(0.87 0.012 75);
+      --border-light: oklch(0.91 0.01 75);
+
+      --primary: oklch(0.42 0.106 145);
+      --primary-hover: oklch(0.38 0.106 145);
+      --primary-ghost: oklch(0.91 0.04 135);
+      --primary-ghost-hover: oklch(0.88 0.05 135);
+      --primary-border: oklch(0.42 0.106 145 / 0.15);
+
+      --accent: oklch(0.62 0.14 42);
+      --accent-hover: oklch(0.57 0.14 42);
+      --accent-surface: oklch(0.93 0.04 42);
+      --accent-border: oklch(0.62 0.14 42 / 0.2);
+
+      --ink: oklch(0.15 0.008 55);
+      --muted: oklch(0.53 0.008 55);
+      --subtle: oklch(0.72 0.006 55);
+
+      --green: oklch(0.50 0.12 140);
+      --green-bg: oklch(0.91 0.045 140);
+      --red: oklch(0.52 0.16 30);
+      --red-bg: oklch(0.92 0.045 30);
+      --amber: oklch(0.62 0.14 80);
+      --amber-bg: oklch(0.93 0.04 80);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-xl: 28px;
+      --radius-full: 999px;
+
+      --shadow-sm: 0 1px 4px oklch(0 0 0 / 0.04);
+      --shadow-card: 0 2px 12px oklch(0 0 0 / 0.05), 0 1px 3px oklch(0 0 0 / 0.03);
+      --shadow-card-hover: 0 8px 28px oklch(0 0 0 / 0.07), 0 2px 6px oklch(0 0 0 / 0.04);
+      --shadow-elevated: 0 16px 48px oklch(0 0 0 / 0.09), 0 4px 12px oklch(0 0 0 / 0.05);
+    }
+
+    * { box-sizing: border-box; }
+    ::selection { background: oklch(0.85 0.08 135); color: var(--ink); }
+
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      margin: 0;
+      font-family: 'Inter', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle, var(--bg-pattern) 0.8px, transparent 0.8px);
+      background-size: 20px 20px;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      line-height: 1.6;
+    }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+    /* ===== SVG Icons base ===== */
+    .icon { width: 20px; height: 20px; display: inline-block; vertical-align: middle; flex-shrink: 0; }
+    .icon-sm { width: 16px; height: 16px; }
+    .icon-lg { width: 24px; height: 24px; }
+    .icon-xl { width: 28px; height: 28px; }
+
+    /* ===== Layout ===== */
+    .app-wrap { max-width: 1120px; margin: 0 auto; padding: 24px 20px; }
+
+    /* ===== Greeting ===== */
+    .greeting {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 28px 32px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+    }
+    .greeting::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 80% at 10% 60%, oklch(0.42 0.106 145 / 0.04), transparent 70%),
+        radial-gradient(ellipse 60% 70% at 90% 30%, oklch(0.62 0.14 42 / 0.03), transparent 60%);
+      pointer-events: none;
+    }
+    .greeting::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2.5px;
+      background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+      opacity: 0.4;
+    }
+    .greeting:hover { box-shadow: var(--shadow-card-hover); }
+    .greeting-text { font-size: 1.35rem; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+    .greeting-sub { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+    .weather-badge {
+      background: var(--primary-ghost);
+      color: var(--primary);
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 500;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .diary-jump {
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .diary-jump:hover { color: var(--primary); }
+
+    /* ===== Section ===== */
+    .section { margin-top: 22px; }
+    .section-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: -0.01em;
+    }
+
+    /* ===== Room Tabs ===== */
+    .room-strip {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .room-chip {
+      padding: 7px 16px;
+      border-radius: var(--radius-full);
+      font-size: 0.8rem;
+      font-weight: 500;
+      background: transparent;
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: inherit;
+    }
+    .room-chip:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-ghost);
+    }
+    .room-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* ===== Device Cards ===== */
+    .device-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
     }
     .device-card {
-      transition: all 0.3s ease;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      border: 1px solid var(--border-light);
+      position: relative;
     }
     .device-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 25px -8px rgba(0,0,0,0.3);
+      box-shadow: var(--shadow-card-hover);
+      border-color: var(--border);
+      transform: translateY(-2px);
     }
-    .log-entry {
-      animation: fadeIn 0.3s ease;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateX(-10px); }
-      to { opacity: 1; transform: translateX(0); }
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
+    .device-card:active { transform: translateY(0); }
+    .device-card.off { opacity: 0.7; }
+    .device-card.off:hover { opacity: 1; }
+    .device-card .dc-icon { color: var(--muted); }
+    .device-card.on .dc-icon { color: var(--primary); }
+    .device-card .dc-name { font-weight: 600; font-size: 0.9rem; color: var(--ink); }
+    .device-card .dc-id { font-size: 0.68rem; color: var(--subtle); margin-top: -1px; }
+    .device-card .dc-detail { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+    .device-card.on .dc-detail { color: var(--primary); }
+
+    .dot {
+      width: 8px; height: 8px;
       border-radius: 50%;
       display: inline-block;
-      margin-right: 6px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
     }
-    .status-dot.on { background: #22c55e; box-shadow: 0 0 8px #22c55e88; }
-    .status-dot.off { background: #9ca3af; }
-    .typing::after {
-      content: '|';
-      animation: blink 1s step-end infinite;
+    .dot.on { background: var(--green); box-shadow: 0 0 6px oklch(0.50 0.12 140 / 0.35); }
+    .dot.off { background: var(--border); }
+
+    .toggle-btn {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
     }
-    @keyframes blink { 50% { opacity: 0; } }
-    .scene-btn {
-      background: white;
-      border: 2px solid #e5e7eb;
+    .toggle-btn.on {
+      background: var(--red-bg);
+      color: var(--red);
+    }
+    .toggle-btn.on:hover { background: oklch(0.88 0.06 30); }
+    .toggle-btn.off {
+      background: var(--primary-ghost);
+      color: var(--primary);
+    }
+    .toggle-btn.off:hover { background: var(--primary-ghost-hover); }
+
+    /* ===== Scene Grid ===== */
+    .scene-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .scene-card {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      padding: 18px 12px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      border: 1px solid var(--border-light);
+    }
+    .scene-card:hover {
+      border-color: var(--accent-border);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-2px);
+    }
+    .scene-card:active { transform: translateY(0); }
+    .scene-card .sc-icon { color: var(--muted); margin-bottom: 7px; display: block; }
+    .scene-card:hover .sc-icon { color: var(--accent); }
+    .scene-card .sc-label { font-size: 0.85rem; font-weight: 600; color: var(--ink); display: block; }
+    .scene-card .sc-desc { font-size: 0.7rem; color: var(--muted); display: block; margin-top: 2px; }
+
+    /* ===== Command ===== */
+    .cmd-box {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 20px 24px 22px;
+      transition: box-shadow 0.3s;
+    }
+    .cmd-box:focus-within { box-shadow: var(--shadow-elevated); }
+    .cmd-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      background: var(--bg);
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--border);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .cmd-row:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-border);
+    }
+    .cmd-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      color: var(--ink);
+      outline: none;
+      min-width: 0;
+    }
+    .cmd-row input::placeholder { color: var(--subtle); }
+    .cmd-send {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: calc(var(--radius-md) - 2px);
+      padding: 0 22px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+      margin: 4px;
+      font-family: inherit;
+    }
+    .cmd-send:hover { background: var(--primary-hover); }
+    .cmd-send:active { transform: scale(0.97); }
+
+    /* 语音按钮 */
+    .voice-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      min-width: 44px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      font-family: inherit;
+      border-radius: var(--radius-full);
+    }
+    .voice-btn:hover { color: var(--primary); }
+    .voice-btn.recording {
+      color: var(--red);
+      animation: pulse-mic 0.8s ease-in-out infinite;
+    }
+    .voice-btn.recording::after {
+      content: '';
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: var(--red-bg);
+      opacity: 0.3;
+      animation: ripple 1s ease-out infinite;
+    }
+    .voice-btn:disabled { opacity: 0.4; cursor: not-allowed; color: var(--subtle); }
+    @keyframes pulse-mic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    @keyframes ripple {
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    .cmd-feedback {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+    .cmd-feedback.show { display: flex; }
+    .cmd-feedback.ok { background: var(--green-bg); color: var(--green); }
+    .cmd-feedback.err { background: var(--red-bg); color: var(--red); }
+    .cmd-feedback.busy { background: var(--amber-bg); color: var(--amber); display: flex; }
+
+    .quick-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .quick-chip {
+      font-size: 0.73rem;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      background: var(--bg);
+      color: var(--muted);
+      cursor: pointer;
       transition: all 0.2s;
+      border: 1px solid var(--border);
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
-    .scene-btn:hover {
-      border-color: #667eea;
-      background: #eef2ff;
+    .quick-chip:hover {
+      background: var(--primary-ghost);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    /* ===== Diary ===== */
+    .diary-box {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      padding: 20px 24px;
+    }
+    .diary-body {
+      max-height: 280px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .diary-line {
+      display: flex;
+      gap: 9px;
+      align-items: flex-start;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      transition: background 0.2s;
+      animation: lineIn 0.25s ease;
+    }
+    .diary-line:hover { background: var(--bg); }
+    .diary-line .dl-ts {
+      color: var(--subtle);
+      font-size: 0.7rem;
+      white-space: nowrap;
+      min-width: 48px;
+      padding-top: 1px;
+    }
+    .diary-line .dl-icon { flex-shrink: 0; padding-top: 1px; }
+    .diary-line .dl-txt { color: var(--ink); flex: 1; min-width: 0; }
+    .diary-line .dl-note { color: var(--muted); font-size: 0.73rem; white-space: nowrap; }
+    .diary-empty {
+      text-align: center;
+      color: var(--subtle);
+      padding: 36px 0;
+      font-size: 0.83rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @keyframes lineIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Health ===== */
+    .health-box {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+    .health-trigger {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--ink);
+      transition: background 0.2s;
+    }
+    .health-trigger:hover { background: var(--bg); }
+    .health-trigger .chev { transition: transform 0.3s ease; color: var(--muted); }
+    .health-trigger.open .chev { transform: rotate(180deg); }
+    .health-body { padding: 0 24px 18px; display: none; }
+    .health-body.open { display: block; }
+    .health-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 0;
+    }
+    .health-row .hr-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.8rem;
+      color: var(--ink);
+    }
+    .health-row .hr-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .health-row .hr-dot.good { background: var(--green); }
+    .health-row .hr-dot.bad { background: var(--red); }
+    .health-row .hr-val { font-size: 0.76rem; color: var(--muted); }
+
+    /* ===== Loading ===== */
+    .skeleton {
+      background: linear-gradient(90deg,
+        var(--surface) 25%,
+        oklch(0.96 0.01 75) 50%,
+        var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s ease-in-out infinite;
+      border-radius: var(--radius-sm);
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .sk-card { height: 96px; border-radius: var(--radius-md); }
+
+    /* ===== Empty / Error ===== */
+    .empty-box {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 36px 16px;
+      color: var(--subtle);
+    }
+    .empty-box .eb-icon { margin-bottom: 8px; }
+    .empty-box .eb-text { font-size: 0.84rem; }
+
+    /* ===== Snail signature ===== */
+    .snail-sig {
+      position: fixed;
+      bottom: 10px;
+      right: 16px;
+      font-size: 0.68rem;
+      color: var(--border);
+      user-select: none;
+      pointer-events: none;
+      opacity: 0.5;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 640px) {
+      .app-wrap { padding: 14px 10px; }
+      .greeting { padding: 20px; }
+      .greeting-text { font-size: 1.1rem; }
+      .device-grid { grid-template-columns: 1fr; }
+      .scene-grid { grid-template-columns: repeat(2, 1fr); }
+      .cmd-box { padding: 14px 16px 16px; }
+      .cmd-row { flex-direction: column; }
+      .cmd-send { width: 100%; margin: 0 0 4px 0; justify-content: center; padding: 10px; }
+      .diary-box { padding: 16px; }
+      .health-trigger { padding: 14px 16px; }
+      .health-body { padding: 0 16px 14px; }
+    }
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .device-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
     }
   </style>
 </head>
-<body class="p-4 md:p-8">
-  <div class="max-w-6xl mx-auto">
-    <!-- 顶部栏 -->
-    <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6 mb-6 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-800">🐌 Home Steward Agent</h1>
-        <p class="text-sm text-gray-400 mt-1">AI 智能管家 · 正在悄悄让家变得更舒适</p>
+<body>
+
+  <!-- ============================================================
+       SVG 图标库
+       ============================================================ -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <!-- 灯泡（灯） -->
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a6 6 0 0 0-3 11.2A6 6 0 0 0 9 16v1h6v-1a6 6 0 0 0 0-2.8A6 6 0 0 0 12 2Z"/>
+      <path d="M9 19h6"/><path d="M10 22h4"/>
+    </symbol>
+    <!-- 雪花（空调） -->
+    <symbol id="i-snow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2v20"/><path d="M2 12h20"/><path d="m5 5 14 14"/><path d="m19 5-14 14"/>
+    </symbol>
+    <!-- 窗户（窗帘） -->
+    <symbol id="i-window" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18"/><path d="M12 3v18"/>
+    </symbol>
+    <!-- 插头 -->
+    <symbol id="i-plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 8V2"/><path d="M14 8V2"/><rect x="7" y="8" width="10" height="8" rx="2"/><path d="M12 16v4"/>
+    </symbol>
+    <!-- 风扇 -->
+    <symbol id="i-fan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M12 9a5 5 0 0 1 4-2c2 0 3 2 1 4"/><path d="M12 15a5 5 0 0 0 4 2c2 0 3-2 1-4"/><path d="M12 9a5 5 0 0 0-4-2C6 7 5 9 7 11"/><path d="M12 15a5 5 0 0 1-4 2c-2 0-3-2-1-4"/>
+    </symbol>
+    <!-- 电视 -->
+    <symbol id="i-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="4" width="20" height="14" rx="2"/><path d="M16 22 12 18l-4 4"/>
+    </symbol>
+    <!-- 音乐 -->
+    <symbol id="i-music" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 17V4l12-2v13"/><circle cx="7" cy="17" r="3"/><circle cx="19" cy="15" r="3"/>
+    </symbol>
+    <!-- 默认/通用 -->
+    <symbol id="i-device" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16"/><path d="M4 9h16"/>
+    </symbol>
+
+    <!-- 蜗牛 logo -->
+    <symbol id="i-snail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="7.5"/>
+      <path d="M12 8.5a3.5 3.5 0 1 0 2.5 5.8"/>
+      <path d="M10 5a7 7 0 0 1 9 7"/>
+      <path d="M5.5 10A7 7 0 0 1 10 5.5"/>
+      <path d="M17 6.5 18.5 4"/>
+      <path d="M15 5.5 17 3.5"/>
+    </symbol>
+
+    <!-- 房子 -->
+    <symbol id="i-house" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21V13h6v8"/>
+    </symbol>
+    <!-- 沙发 -->
+    <symbol id="i-sofa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 10V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3"/><path d="M20 10a2 2 0 0 1 2 2v5H2v-5a2 2 0 0 1 2-2"/><path d="M4 17v2"/><path d="M20 17v2"/>
+    </symbol>
+    <!-- 床 -->
+    <symbol id="i-bed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 4v16"/><path d="M2 8h20"/><path d="M22 4v16"/><path d="M6 8v4"/><path d="M18 8v4"/><rect x="6" y="12" width="12" height="4" rx="1"/>
+    </symbol>
+    <!-- 厨房（厨师帽） -->
+    <symbol id="i-chef" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 13.5A3.5 3.5 0 0 1 8 7a4 4 0 0 1 8 0 3.5 3.5 0 0 1 2 6.5"/><path d="M6 17v4h12v-4"/><path d="M10 13v4"/><path d="M14 13v4"/>
+    </symbol>
+    <!-- 书 -->
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+      <path d="M12 6v7"/><path d="M9 9l3-3 3 3"/>
+    </symbol>
+    <!-- 叶子（阳台/植物） -->
+    <symbol id="i-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 3v4a9 9 0 0 0 9 9"/><path d="M21 3v4a9 9 0 0 1-9 9"/><path d="M12 16v5"/><path d="M8 21h8"/>
+      <path d="M3 3h18"/>
+    </symbol>
+    <!-- 餐具（餐厅） -->
+    <symbol id="i-dine" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2v6a4 4 0 0 0 4 4"/><path d="M10 12v10"/><path d="M10 12a4 4 0 0 0 4-4V2"/><path d="M18 2v20"/>
+    </symbol>
+    <!-- 闪电（场景） -->
+    <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="13 2 4 13 10 13 10 22 20 11 14 11 14 2"/>
+    </symbol>
+    <!-- 麦克风 -->
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8 22h8"/>
+    </symbol>
+    <!-- 日记/书 -->
+    <symbol id="i-journal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </symbol>
+    <!-- 心电（健康） -->
+    <symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </symbol>
+    <!-- 勾 -->
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </symbol>
+    <!-- 叉 -->
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <!-- 温度计 -->
+    <symbol id="i-thermo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/><circle cx="11.5" cy="18.5" r="2.5"/>
+    </symbol>
+    <!-- 月亮 -->
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+    </symbol>
+    <!-- 太阳 -->
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+    </symbol>
+    <!-- 门 -->
+    <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 4h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4"/><polyline points="10 12 12 14 14 12"/><path d="M12 2v12"/>
+    </symbol>
+    <!-- 向左箭头（chevron） -->
+    <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </symbol>
+    <!-- 更多图标：灯泡（已定义）snow（已定义）window（已定义）plug（已定义） -->
+  </svg>
+
+  <div class="app-wrap">
+
+    <!-- ==================== GREETING ==================== -->
+    <header class="greeting" id="greetingCard">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-3 min-w-0">
+          <svg class="icon-xl flex-shrink-0" style="color:var(--primary);margin-top:2px;"><use href="#i-snail"/></svg>
+          <div class="min-w-0">
+            <div class="greeting-text truncate" id="greetingText">晚上好，主人</div>
+            <div class="greeting-sub truncate" id="greetingSub">今天也在悄悄让家变得更舒适 …</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <span class="weather-badge" id="weatherBadge">
+            <svg class="icon-sm"><use href="#i-thermo"/></svg>
+            --°C
+          </span>
+          <span class="diary-jump" onclick="document.getElementById('diarySection').scrollIntoView({behavior:'smooth'})">
+            <svg class="icon-sm"><use href="#i-journal"/></svg>
+            日记簿
+          </span>
+        </div>
       </div>
-      <div class="flex items-center gap-4">
-        <span id="statusBadge" class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-          🟢 运行中
-        </span>
-        <a href="/api/docs" target="_blank" class="text-gray-400 hover:text-gray-600 text-sm underline">API 文档</a>
+    </header>
+
+    <!-- ==================== ROOMS & DEVICES ==================== -->
+    <section class="section">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-house"/></svg>
+        各个房间
       </div>
-    </div>
+      <div class="room-strip" id="roomTabs">
+        <button class="room-chip active" data-room="all">
+          <svg class="icon-sm"><use href="#i-house"/></svg>
+          全部
+        </button>
+      </div>
+      <div id="deviceGrid" class="device-grid">
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+        <div class="skeleton sk-card"></div>
+      </div>
+    </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- 左栏：设备面板 -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- 设备卡片网格 -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-4">🏠 设备面板</h2>
-          <div id="deviceGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="col-span-full text-center py-8 text-gray-400">
-              <div class="animate-pulse">加载设备中...</div>
-            </div>
-          </div>
+    <!-- ==================== SCENES ==================== -->
+    <section class="section">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-zap"/></svg>
+        快捷场景
+      </div>
+      <div class="scene-grid" id="sceneGrid"></div>
+    </section>
+
+    <!-- ==================== COMMAND ==================== -->
+    <section class="section">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-mic"/></svg>
+        跟小蜗说点什么
+      </div>
+      <div class="cmd-box">
+        <div class="cmd-row">
+          <input
+            id="commandInput"
+            type="text"
+            placeholder="试试：打开客厅灯 / 空调调到26度 / 把灯调暗一点…"
+            onkeydown="if(event.key==='Enter') sendCommand()"
+          />
+          <button class="voice-btn" id="voiceBtn"
+            onmousedown="startVoice()" onmouseup="stopVoice()"
+            onmouseleave="stopVoice()"
+            ontouchstart="startVoice()" ontouchend="stopVoice()"
+            title="按住说话，松开发送">
+            <svg class="icon" id="voiceIcon"><use href="#i-mic"/></svg>
+          </button>
+          <button class="cmd-send" onclick="sendCommand()">
+            发送
+            <svg class="icon-sm"><use href="#i-snail"/></svg>
+          </button>
         </div>
-
-        <!-- 场景快速按钮 -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-4">⚡ 快捷场景</h2>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button onclick="executeScenario('离家模式')" class="scene-btn rounded-xl p-4 text-center">
-              <div class="text-2xl mb-1">🚪</div>
-              <div class="text-sm font-medium text-gray-700">离家模式</div>
-              <div class="text-xs text-gray-400 mt-1">关闭所有设备</div>
-            </button>
-            <button onclick="executeScenario('回家模式')" class="scene-btn rounded-xl p-4 text-center">
-              <div class="text-2xl mb-1">🏡</div>
-              <div class="text-sm font-medium text-gray-700">回家模式</div>
-              <div class="text-xs text-gray-400 mt-1">开客厅灯 40%</div>
-            </button>
-            <button onclick="executeScenario('睡眠模式')" class="scene-btn rounded-xl p-4 text-center">
-              <div class="text-2xl mb-1">🌙</div>
-              <div class="text-sm font-medium text-gray-700">睡眠模式</div>
-              <div class="text-xs text-gray-400 mt-1">关灯·空调睡眠</div>
-            </button>
-            <button onclick="executeScenario('早安模式')" class="scene-btn rounded-xl p-4 text-center">
-              <div class="text-2xl mb-1">☀️</div>
-              <div class="text-sm font-medium text-gray-700">早安模式</div>
-              <div class="text-xs text-gray-400 mt-1">渐亮·播报天气</div>
-            </button>
-          </div>
-        </div>
-
-        <!-- 语音指令输入 -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-4">🎙️ 控制指令</h2>
-          <div class="flex gap-3">
-            <input id="commandInput"
-              type="text"
-              placeholder="试试：打开客厅灯 / 空调调到26度 / 关闭卧室灯..."
-              class="flex-1 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
-              onkeydown="if(event.key==='Enter') sendCommand()" />
-            <button onclick="sendCommand()"
-              class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-8 py-3 rounded-xl hover:from-purple-600 hover:to-indigo-700 font-medium shadow-lg">
-              发送
-            </button>
-          </div>
-          <div id="commandFeedback" class="mt-3 text-sm hidden"></div>
-          <!-- 快捷指令 -->
-          <div class="flex flex-wrap gap-2 mt-4">
-            <span class="text-xs text-gray-400 mr-1 self-center">快速:</span>
-            <button onclick="quickCmd('打开客厅灯')" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">打开客厅灯</button>
-            <button onclick="quickCmd('关闭客厅灯')" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">关闭客厅灯</button>
-            <button onclick="quickCmd('打开卧室灯')" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">打开卧室灯</button>
-            <button onclick="quickCmd('空调调到26度')" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">空调26度</button>
-            <button onclick="quickCmd('所有灯打开')" class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg">所有灯打开</button>
-          </div>
+        <div id="commandFeedback" class="cmd-feedback"></div>
+        <div class="quick-strip">
+          <span style="font-size:0.72rem;color:var(--subtle);margin-right:2px;">快速:</span>
+          <button class="quick-chip" onclick="quickCmd('打开客厅灯')">
+            <svg class="icon-sm"><use href="#i-bulb"/></svg> 客厅灯
+          </button>
+          <button class="quick-chip" onclick="quickCmd('关闭客厅灯')">
+            <svg class="icon-sm"><use href="#i-bulb"/></svg> 关客厅灯
+          </button>
+          <button class="quick-chip" onclick="quickCmd('空调调到26度')">
+            <svg class="icon-sm"><use href="#i-snow"/></svg> 空调26°
+          </button>
+          <button class="quick-chip" onclick="quickCmd('所有灯打开')">
+            <svg class="icon-sm"><use href="#i-bulb"/></svg> 全开灯
+          </button>
         </div>
       </div>
+    </section>
 
-      <!-- 右栏：日志 + 系统状态 -->
-      <div class="space-y-6">
-        <!-- 系统健康 -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-4">🩺 系统健康</h2>
-          <div id="healthPanel" class="space-y-3">
-            <div class="animate-pulse text-gray-400 text-sm">加载中...</div>
-          </div>
-        </div>
-
-        <!-- 操作日志 -->
-        <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-4">📋 操作日志</h2>
-          <div id="logPanel" class="h-80 overflow-y-auto space-y-2 text-sm font-mono">
-            <div class="text-gray-400 text-center py-8">还没有操作记录</div>
+    <!-- ==================== DIARY ==================== -->
+    <section class="section" id="diarySection">
+      <div class="section-head">
+        <svg class="icon" style="color:var(--muted);"><use href="#i-journal"/></svg>
+        小蜗的日记簿
+      </div>
+      <div class="diary-box">
+        <div class="diary-body" id="diaryPanel">
+          <div class="diary-empty">
+            <svg class="icon-xl" style="color:var(--border);"><use href="#i-journal"/></svg>
+            小蜗还没有做任何事情 …
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- ==================== HEALTH ==================== -->
+    <section class="section">
+      <div class="health-box" id="healthArea">
+        <button class="health-trigger" id="healthToggle" onclick="toggleHealth()">
+          <span style="display:inline-flex;align-items:center;gap:7px;">
+            <svg class="icon"><use href="#i-pulse"/></svg>
+            系统状态
+          </span>
+          <svg class="icon chev"><use href="#i-chevron-down"/></svg>
+        </button>
+        <div class="health-body" id="healthBody">
+          <div id="healthPanel">
+            <div class="skeleton" style="height:30px;border-radius:7px;"></div>
+            <div class="skeleton" style="height:30px;border-radius:7px;margin-top:5px;"></div>
+            <div class="skeleton" style="height:30px;border-radius:7px;margin-top:5px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="snail-sig">🐌 slowly making home better</div>
   </div>
 
   <script>
+    // ============================================================
+    //  HOME STEWARD
+    // ============================================================
     const API = 'http://localhost:8000';
+    let currentRoom = 'all';
+    let allDevices = [];
+    let roomNames = [];
+    let healthOpen = false;
 
-    // ===== 设备面板 =====
-    async function loadDevices() {
-      const res = await fetch(`${API}/api/devices/`);
-      const data = await res.json();
-      const grid = document.getElementById('deviceGrid');
-      grid.innerHTML = '';
-      for (const d of data.devices) {
-        const statusRes = await fetch(`${API}/api/devices/${d.id}`);
-        const statusData = await statusRes.json();
-        grid.innerHTML += deviceCard(d, statusData.status);
+    // ---------- Icons ----------
+    function icon(name, cls = '') {
+      return `<svg class="icon ${cls}"><use href="#i-${name}"/></svg>`;
+    }
+    function iconSm(name) { return icon(name, 'icon-sm'); }
+
+    // ---------- Greeting ----------
+    function setGreeting() {
+      const h = new Date().getHours();
+      let text, sub;
+      if (h >= 5 && h < 12) {
+        text = '早上好，主人'; sub = '新的一天，小蜗已经在悄悄工作了 …';
+      } else if (h >= 12 && h < 14) {
+        text = '中午好，主人'; sub = '午后的阳光正好，家里一切安好 ☕';
+      } else if (h >= 14 && h < 18) {
+        text = '下午好，主人'; sub = '今天也在慢慢让家变得更舒适 …';
+      } else if (h >= 18 && h < 21) {
+        text = '傍晚好，主人'; sub = '天色暗了，需要帮你开灯吗？';
+      } else {
+        text = '晚上好，主人'; sub = '夜深了，小蜗在安静地守护着家 …';
       }
+      document.getElementById('greetingText').textContent = text;
+      document.getElementById('greetingSub').textContent = sub;
+    }
+    setGreeting();
+
+    // ---------- Room Detection ----------
+    const ROOMS = ['客厅','卧室','厨房','书房','阳台','餐厅','卫生间','浴室','院子','车库','门廊','走廊'];
+    function detectRoom(name) {
+      for (const r of ROOMS) { if (name.includes(r)) return r; }
+      return null;
     }
 
-    function deviceCard(device, status) {
+    const ROOM_ICONS = { '客厅':'sofa', '卧室':'bed', '厨房':'chef', '书房':'book', '阳台':'leaf', '餐厅':'dine' };
+    function roomIcon(room) { return ROOM_ICONS[room] || 'house'; }
+
+    function groupByRoom(devices) {
+      const groups = {};
+      for (const d of devices) {
+        const room = detectRoom(d.name) || '其他';
+        if (!groups[room]) groups[room] = [];
+        groups[room].push(d);
+      }
+      const order = ['客厅','卧室','厨房','书房','阳台','餐厅','其他'];
+      const sorted = {};
+      for (const r of order) { if (groups[r]) sorted[r] = groups[r]; }
+      for (const r of Object.keys(groups).sort()) { if (!sorted[r]) sorted[r] = groups[r]; }
+      return sorted;
+    }
+
+    // ---------- Icons per device type ----------
+    const DEV_ICONS = {
+      light: 'bulb', ac: 'snow', curtain: 'window', plug: 'plug',
+      sensor: 'device', fan: 'fan', tv: 'tv', music: 'music'
+    };
+
+    // ---------- Device Card ----------
+    function deviceCardHTML(device, status) {
       const isOn = status?.on;
-      const icon = device.type === 'light' ? '💡' : device.type === 'ac' ? '❄️' : device.type === 'curtain' ? '🪟' : '🔌';
-      const detail = status?.temperature ? `${status.temperature}°C` : status?.brightness ? `${status.brightness}%` : '';
+      const di = DEV_ICONS[device.type] || 'device';
+      let detail = '';
+      if (status?.temperature) detail = `${status.temperature}°C`;
+      else if (status?.brightness) detail = `${status.brightness}%`;
+      else if (status?.humidity) detail = `${status.humidity}%`;
+
       return `
-        <div class="device-card bg-white rounded-xl border border-gray-100 p-4">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2">
-              <span class="text-xl">${icon}</span>
-              <div>
-                <div class="font-medium text-gray-800">${device.name}</div>
-                <div class="text-xs text-gray-400">${device.id}</div>
+        <div class="device-card ${isOn ? 'on' : 'off'}" data-device-id="${device.id}">
+          <div class="flex items-start justify-between mb-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="dc-icon">${icon(di)}</span>
+              <div class="min-w-0">
+                <div class="dc-name truncate">${device.name}</div>
+                <div class="dc-id truncate">${device.id}</div>
               </div>
             </div>
-            <span class="status-dot ${isOn ? 'on' : 'off'}"></span>
+            <span class="dot ${isOn ? 'on' : 'off'}"></span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-sm ${isOn ? 'text-green-600 font-medium' : 'text-gray-400'}">
-              ${isOn ? '已开启' : '已关闭'} ${detail ? '· ' + detail : ''}
+            <span class="dc-detail">
+              ${isOn
+                ? `<span style="font-weight:500;">已开启</span>`
+                : `<span>已关闭</span>`}
+              ${detail ? `· ${detail}` : ''}
             </span>
-            <button onclick="quickCmd('${isOn ? '关闭' : '打开'}${device.name}')"
-              class="text-xs px-3 py-1.5 rounded-lg ${isOn ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}">
+            <button class="toggle-btn ${isOn ? 'on' : 'off'}"
+              onclick="event.stopPropagation(); toggleDevice('${device.id}', '${device.name}', ${!isOn})">
               ${isOn ? '关闭' : '打开'}
             </button>
           </div>
         </div>`;
     }
 
-    // ===== 命令发送 =====
+    // ---------- Load Devices ----------
+    async function loadDevices() {
+      const grid = document.getElementById('deviceGrid');
+      try {
+        const res = await fetch(`${API}/api/devices/`);
+        const data = await res.json();
+        allDevices = data.devices || [];
+
+        if (allDevices.length === 0) {
+          grid.innerHTML = `<div class="empty-box"><div class="eb-icon">${icon('house','icon-xl')}</div><div class="eb-text">还没有设备，让小蜗帮你发现一些吧 …</div></div>`;
+          return;
+        }
+
+        const statusResults = await Promise.all(
+          allDevices.map(d =>
+            fetch(`${API}/api/devices/${d.id}`)
+              .then(r => r.json())
+              .then(data => ({ id: d.id, status: data.status }))
+              .catch(() => ({ id: d.id, status: null })))
+        );
+        const statusMap = {};
+        statusResults.forEach(s => { statusMap[s.id] = s.status; });
+
+        const grouped = groupByRoom(allDevices);
+        roomNames = Object.keys(grouped);
+
+        let html = '';
+        const list = currentRoom === 'all' ? allDevices : (grouped[currentRoom] || []);
+        for (const d of list) html += deviceCardHTML(d, statusMap[d.id]);
+        if (!html) html = `<div class="empty-box"><div class="eb-icon">${icon('door','icon-xl')}</div><div class="eb-text">这个房间还没有设备</div></div>`;
+        grid.innerHTML = html;
+
+        renderRoomTabs(grouped);
+      } catch (e) {
+        console.error(e);
+        grid.innerHTML = `<div class="empty-box"><div class="eb-icon">${icon('x','icon-xl')}</div><div class="eb-text">小蜗连不上服务器了 … 请检查后端是否在运行</div></div>`;
+      }
+    }
+
+    function renderRoomTabs(groups) {
+      const container = document.getElementById('roomTabs');
+      const rooms = Object.keys(groups);
+      let html = `<button class="room-chip ${currentRoom==='all'?'active':''}" data-room="all" onclick="switchRoom('all')">${iconSm('house')} 全部</button>`;
+      for (const room of rooms) {
+        html += `<button class="room-chip ${currentRoom===room?'active':''}" data-room="${room}" onclick="switchRoom('${room}')">${iconSm(roomIcon(room))} ${room}</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function switchRoom(room) {
+      currentRoom = room;
+      loadDevices();
+    }
+
+    async function toggleDevice(id, name, turnOn) {
+      quickCmd(`${turnOn ? '打开' : '关闭'}${name}`);
+    }
+
+    // ---------- Command ----------
     async function sendCommand() {
       const input = document.getElementById('commandInput');
       const text = input.value.trim();
@@ -212,93 +1013,181 @@
     }
 
     async function executeCommand(text) {
-      const feedback = document.getElementById('commandFeedback');
-      feedback.className = 'mt-3 text-sm text-gray-500';
-      feedback.innerHTML = '⏳ 处理中...';
-      feedback.classList.remove('hidden');
+      const fb = document.getElementById('commandFeedback');
+      fb.className = 'cmd-feedback busy show';
+      fb.innerHTML = `${iconSm('snail')} 小蜗正在努力 …`;
 
-      const res = await fetch(`${API}/api/devices/command`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-      });
-      const result = await res.json();
-
-      const isSuccess = result.success;
-      feedback.className = `mt-3 text-sm ${isSuccess ? 'text-green-600' : 'text-red-500'}`;
-      feedback.innerHTML = `${isSuccess ? '✅' : '❌'} ${result.message}`;
-
-      addLog(text, result);
-      loadDevices();
-      loadHealth();
-    }
-
-    // ===== 场景执行 =====
-    async function executeScenario(name) {
-      document.getElementById('commandFeedback').className = 'mt-3 text-sm text-gray-500';
-      document.getElementById('commandFeedback').innerHTML = `⏳ 执行 ${name}...`;
-      document.getElementById('commandFeedback').classList.remove('hidden');
-
-      const commands = {
-        '离家模式': ['关闭客厅灯', '关闭卧室灯', '关闭厨房灯'],
-        '回家模式': ['打开客厅灯'],
-        '睡眠模式': ['关闭客厅灯', '关闭卧室灯'],
-        '早安模式': ['打开卧室灯'],
-      };
-      for (const cmd of commands[name] || []) {
-        addLog(`[${name}] ${cmd}`, { success: true, message: '场景步骤' });
-        await executeCommand(cmd);
+      try {
+        const res = await fetch(`${API}/api/devices/command`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        const result = await res.json();
+        fb.className = `cmd-feedback ${result.success ? 'ok' : 'err'} show`;
+        fb.innerHTML = `${iconSm(result.success ? 'check' : 'x')} ${result.message}`;
+        addDiaryEntry(text, result);
+        loadDevices();
+        loadHealthIfOpen();
+      } catch {
+        fb.className = 'cmd-feedback err show';
+        fb.innerHTML = `${iconSm('x')} 小蜗连不上服务器了 …`;
+        addDiaryEntry(text, { success: false, message: '网络错误' });
       }
-      document.getElementById('commandFeedback').innerHTML = `✅ ${name} 执行完成`;
     }
 
-    // ===== 操作日志 =====
-    function addLog(text, result) {
-      const panel = document.getElementById('logPanel');
+    // ---------- Scenes ----------
+    const SCENES = [
+      { name: '离家模式', icon: 'door',    desc: '关闭所有设备' },
+      { name: '回家模式', icon: 'house',   desc: '开客厅灯 40%' },
+      { name: '睡眠模式', icon: 'moon',    desc: '关灯·空调睡眠' },
+      { name: '早安模式', icon: 'sun',     desc: '渐亮·播报天气' },
+    ];
+    const SCENE_CMDS = {
+      '离家模式': ['关闭客厅灯','关闭卧室灯','关闭厨房灯'],
+      '回家模式': ['打开客厅灯'],
+      '睡眠模式': ['关闭客厅灯','关闭卧室灯'],
+      '早安模式': ['打开卧室灯'],
+    };
+
+    function renderScenes() {
+      document.getElementById('sceneGrid').innerHTML = SCENES.map(s =>
+        `<div class="scene-card" onclick="execScene('${s.name}')">
+          <span class="sc-icon">${icon(s.icon, 'icon-lg')}</span>
+          <span class="sc-label">${s.name}</span>
+          <span class="sc-desc">${s.desc}</span>
+        </div>`
+      ).join('');
+    }
+    renderScenes();
+
+    async function execScene(name) {
+      const fb = document.getElementById('commandFeedback');
+      fb.className = 'cmd-feedback busy show';
+      fb.innerHTML = `${iconSm('snail')} 小蜗正在执行 ${name} …`;
+
+      for (const cmd of (SCENE_CMDS[name] || [])) {
+        addDiaryEntry(`[${name}] ${cmd}`, { success: true, message: '场景步骤' });
+        try {
+          await fetch(`${API}/api/devices/command`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: cmd }),
+          });
+        } catch {}
+      }
+      fb.className = 'cmd-feedback ok show';
+      fb.innerHTML = `${iconSm('check')} ${name} 执行完成`;
+      loadDevices();
+      loadHealthIfOpen();
+    }
+
+    // ---------- Diary ----------
+    function addDiaryEntry(text, result) {
+      const panel = document.getElementById('diaryPanel');
+      const empty = panel.querySelector('.diary-empty');
+      if (empty) empty.remove();
+
       const entry = document.createElement('div');
-      entry.className = 'log-entry p-2 rounded-lg bg-gray-50';
-      const time = new Date().toLocaleTimeString();
-      const icon = result.success ? '✅' : '❌';
-      entry.innerHTML = `<span class="text-gray-400">${time}</span> ${icon} ${text}<br><span class="text-xs text-gray-400">→ ${result.message}</span>`;
+      const time = new Date().toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit' });
+      const ok = result && result.success;
+      entry.className = 'diary-line';
+      entry.innerHTML = `
+        <span class="dl-ts">${time}</span>
+        <span class="dl-icon">${iconSm(ok ? 'check' : 'x')}</span>
+        <span class="dl-txt">${esc(text)}</span>
+        <span class="dl-note">${esc(result?.message || '')}</span>`;
       panel.prepend(entry);
-      if (panel.children.length > 50) panel.lastChild.remove();
+      while (panel.children.length > 100) panel.lastChild.remove();
     }
 
-    // ===== 健康面板 =====
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    // ---------- Health ----------
+    function toggleHealth() {
+      healthOpen = !healthOpen;
+      document.getElementById('healthBody').classList.toggle('open', healthOpen);
+      document.getElementById('healthToggle').classList.toggle('open', healthOpen);
+      if (healthOpen) loadHealth();
+    }
+
+    function loadHealthIfOpen() { if (healthOpen) loadHealth(); }
+
     async function loadHealth() {
+      const panel = document.getElementById('healthPanel');
       try {
         const res = await fetch(`${API}/api/health/detailed`);
         const h = await res.json();
-        const panel = document.getElementById('healthPanel');
-        panel.innerHTML = '';
         const items = [
-          { label: '后端服务', status: h.backend?.status, detail: h.backend?.uptime },
-          { label: 'MQTT 消息', status: h.mqtt?.status, detail: `${h.mqtt?.messages || 0} 条` },
-          { label: 'AI 模型', status: h.llm?.status, detail: `${h.llm?.model || '未部署'} · ${h.llm?.latency || '-'}` },
-          { label: '记忆系统', status: h.memory?.status, detail: `${h.memory?.count || 0} 条` },
-          { label: '磁盘', status: 'normal', detail: `${h.disk?.used || '-'} / ${h.disk?.total || '-'}` },
+          { label: '后端服务', ok: h.backend?.status === 'running', detail: h.backend?.uptime || '-' },
+          { label: 'MQTT',     ok: h.mqtt?.status === 'connected',  detail: `${h.mqtt?.messages || 0} 条` },
+          { label: 'AI 模型',  ok: h.llm?.status === 'configured', detail: h.llm?.model || '未部署' },
+          { label: '设备',     ok: true,                            detail: `${h.devices?.count || 0} 个` },
+          { label: '磁盘',     ok: true,                            detail: `${h.disk?.used || '-'} / ${h.disk?.total || '-'}` },
         ];
-        for (const item of items) {
-          const color = item.status === 'running' || item.status === 'normal' || item.status === 'connected'
-            ? 'bg-green-500' : 'bg-red-500';
-          panel.innerHTML += `
-            <div class="flex items-center justify-between py-1">
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full ${color}"></span>
-                <span class="text-sm text-gray-600">${item.label}</span>
-              </div>
-              <span class="text-xs text-gray-400">${item.detail}</span>
-            </div>`;
-        }
+        panel.innerHTML = items.map(i => `
+          <div class="health-row">
+            <div class="hr-label"><span class="hr-dot ${i.ok ? 'good' : 'bad'}"></span>${i.label}</div>
+            <span class="hr-val">${i.detail}</span>
+          </div>`).join('');
       } catch {
-        document.getElementById('healthPanel').innerHTML = '<div class="text-sm text-red-400">⚠️ 无法获取系统状态</div>';
+        panel.innerHTML = '<div style="color:var(--red);font-size:0.8rem;padding:4px 0;">⚠️ 无法获取系统状态</div>';
       }
     }
 
-    // ===== 定时刷新 =====
+    // ============================================================
+    //  WEB SPEECH API — 语音输入
+    // ============================================================
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      let recognition = null;
+      let isRecording = false;
+      const voiceBtn = document.getElementById('voiceBtn');
+
+      window.startVoice = function() {
+        if (isRecording) return;
+        isRecording = true;
+        voiceBtn.classList.add('recording');
+        try {
+          recognition = new SpeechRecognition();
+          recognition.lang = 'zh-CN';
+          recognition.continuous = false;
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+          recognition.onresult = function(e) {
+            const text = e.results[0][0].transcript;
+            document.getElementById('commandInput').value = text;
+            sendCommand();
+          };
+          recognition.onerror = function(e) {
+            if (e.error === 'not-allowed') voiceBtn.title = '请允许麦克风权限';
+            stopVoice();
+          };
+          recognition.onend = function() { stopVoice(); };
+          recognition.start();
+        } catch(e) { stopVoice(); }
+      };
+      window.stopVoice = function() {
+        isRecording = false;
+        voiceBtn.classList.remove('recording');
+        if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
+      };
+    } else {
+      document.getElementById('voiceBtn').disabled = true;
+      document.getElementById('voiceBtn').title = '语音功能不被当前浏览器支持';
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
     loadDevices();
     loadHealth();
-    setInterval(loadHealth, 5000);
+    setInterval(loadHealth, 10000);
+    setInterval(loadDevices, 15000);
   </script>
 </body>
 </html>
