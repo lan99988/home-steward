@@ -88,35 +88,14 @@ class Reminder:
 class ReminderParser:
     """将自然语言提醒解析为结构化 Reminder"""
 
-    PROMPT = """解析用户的提醒/定时指令为结构化数据。只输出JSON。
-
-示例:
-用户说: "每天8点开灯"  
-输出: {"action":"turn_on","device":"light_living","time":"08:00","repeat":"daily"}
-
-用户说: "每晚10点关灯"
-输出: {"action":"turn_off","device":"light_living","time":"22:00","repeat":"daily"}
-
-用户说: "每周一早上7点开空调"
-输出: {"action":"turn_on","device":"ac_living","time":"07:00","repeat":"weekly_一"}
-
-用户说: "明天下午3点提醒我吃药"
-输出: {"action":"remind","message":"吃药","time":"15:00","repeat":"once"}
-
-用户说: "工作日8点半开灯"
-输出: {"action":"turn_on","device":"light_living","time":"08:30","repeat":"weekdays"}
-
-可能的action: turn_on, turn_off, set_temperature, remind
-可能的repeat: once, daily, weekdays, weekends, weekly_X
-
-只输出JSON，不要多余文字。"""
+    PROMPT = """解析用户的提醒语句为JSON。星期: 一/二/三/四/五/六/日→weekly_一~weekly_日。{"action":"turn_on","device":"light_living","time":"08:00","repeat":"daily"}"""
 
     def __init__(self, llm):
         self.llm = llm
 
     async def parse(self, text: str) -> Optional[Dict[str, Any]]:
         """解析自然语言为结构化提醒"""
-        prompt = f"{self.PROMPT}\n用户说: \"{text}\"\n"
+        prompt = f"{self.PROMPT}\n{text}"
         try:
             resp = await self.llm.client.post(
                 f"{self.llm.base_url}/api/generate",
@@ -124,19 +103,30 @@ class ReminderParser:
                     "model": self.llm.model,
                     "prompt": prompt,
                     "stream": False,
+                    "raw": True,
                     "temperature": 0.1,
-                    "options": {"num_predict": 256},
+                    "options": {"num_predict": 4096},
                 },
                 timeout=60.0,
             )
             result = resp.json()
             raw = result["response"].strip()
+            # 去除思考块
+            if "<think>" in raw:
+                import re
+                raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
             # 提取 JSON
-            if "```json" in raw:
-                raw = raw.split("```json")[1].split("```")[0]
-            elif "```" in raw:
-                raw = raw.split("```")[1].split("```")[0]
-            return json.loads(raw.strip())
+            import re
+            m = re.search(r"\{.*\}", raw, re.DOTALL)
+            if not m:
+                return None
+            obj = json.loads(m.group())
+            # 如果是数组，取第一个元素
+            if isinstance(obj, list) and len(obj) > 0:
+                obj = obj[0]
+            if isinstance(obj, dict):
+                return obj
+            return None
         except Exception as e:
             logger.error(f"提醒解析失败: {e}")
             return None

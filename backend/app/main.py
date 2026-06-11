@@ -88,6 +88,25 @@ async def lifespan(app: FastAPI):
     from app.execution.comfort import comfort_polisher
     comfort_polisher.llm = local_llm
 
+    # 模型预热：首次加载较慢，提前在后台加载
+    if ollama_ok:
+        logger.info("🧠 预热模型（后台）...")
+        try:
+            await local_llm.client.post(
+                f"{local_llm.base_url}/api/generate",
+                json={
+                    "model": local_llm.model,
+                    "prompt": "test",
+                    "stream": False,
+                    "raw": True,
+                    "options": {"num_predict": 1},
+                },
+                timeout=120.0,
+            )
+            logger.info("✅ 模型预热完成")
+        except Exception as e:
+            logger.warning(f"⚠️ 模型预热失败（首次推理可能较慢）: {e}")
+
     skill_registry.discover_builtin()
     logger.info(f"✅ 已发现 {len(skill_registry.skills)} 个内置 Skill")
 

@@ -15,15 +15,10 @@ class LocalLLM:
     """本地模型推理客户端——由 ModelProvisioner 自动选择模型"""
 
     INTENT_SYSTEM_PROMPT = """你是一个智能家居管家。请将用户的指令解析为结构化意图。
-只输出 JSON，不要多余文字。
 
-输出格式:
-{
-  "intent": "turn_on|turn_off|set_temperature|set_brightness|set_mode|set_scene|unknown",
-  "device": "设备名称（中文）",
-  "domain": "light|climate|scene|curtain",
-  "parameters": {}
-}
+直接输出纯 JSON，不要思考，不要输出其他文字。
+
+格式: {"intent": "turn_on|turn_off|set_temperature|set_brightness|set_mode|set_scene|unknown", "device": "设备名", "domain": "light|climate|scene|curtain", "parameters": {}}
 
 示例:
 用户说: "打开客厅灯" → {"intent": "turn_on", "device": "客厅灯", "domain": "light", "parameters": {}}
@@ -63,11 +58,11 @@ class LocalLLM:
 
     async def parse_intent(self, text: str) -> Optional[Dict[str, Any]]:
         """将自然语言解析为结构化意图"""
-        # 快速失败：Ollama 不可达时直接返回，避免 120s 超时
+        # 快速失败：Ollama 不可达时直接返回，避免超时
         if self.healthy is False:
             return None
 
-        prompt = f"{self.INTENT_SYSTEM_PROMPT}\n用户说: \"{text}\"\n"
+        prompt = f"{self.INTENT_SYSTEM_PROMPT}\n{text}"
         try:
             resp = await self.client.post(
                 f"{self.base_url}/api/generate",
@@ -75,10 +70,11 @@ class LocalLLM:
                     "model": self.model,
                     "prompt": prompt,
                     "stream": False,
+                    "raw": True,
                     "temperature": 0.1,
-                    "options": {"num_predict": 2048},
+                    "options": {"num_predict": 4096},
                 },
-                timeout=30.0,  # 从 120s 降到 30s
+                timeout=120.0,
             )
             resp.raise_for_status()
             result = resp.json()
@@ -94,10 +90,19 @@ class LocalLLM:
             return None
 
     def _extract_json(self, text: str) -> Optional[Dict]:
-        """从 LLM 回复中提取 JSON"""
+        """从 LLM 回复中提取 JSON（处理思考块、```包裹、数组包裹等）"""
+        # 去掉 思考块（如果有）
+        if "<think>" in text:
+            import re as _re
+            text = _re.sub(r"<think>.*?</think>", "", text, flags=_re.DOTALL).strip()
+        # 尝试直接解析
         try:
-            # 尝试直接解析
-            return json.loads(text)
+            obj = json.loads(text)
+            # 如果是数组，取第一个元素
+            if isinstance(obj, list) and len(obj) > 0:
+                obj = obj[0]
+            if isinstance(obj, dict):
+                return obj
         except json.JSONDecodeError:
             pass
         # 尝试提取 ```json ... ``` 包裹的内容
@@ -106,10 +111,16 @@ class LocalLLM:
                 text = text.split("```json")[1].split("```")[0]
             elif "```" in text:
                 text = text.split("```")[1].split("```")[0]
-            return json.loads(text.strip())
+            obj = json.loads(text.strip())
+            if isinstance(obj, list) and len(obj) > 0:
+                obj = obj[0]
+            if isinstance(obj, dict):
+                return obj
         except (json.JSONDecodeError, IndexError):
-            logger.error(f"无法从 LLM 回复中提取 JSON: {text[:100]}")
+            logger.error(f"无法从 LLM 回复中提取 JSON: {text[:200]}")
             return None
+        logger.error(f"提取 JSON 后非 dict: {text[:100]}")
+        return None
 
     async def close(self):
         await self.client.aclose()
