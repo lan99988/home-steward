@@ -70,7 +70,7 @@ class RollbackSandbox:
             with open(path, encoding="utf-8") as f:
                 tree = ast.parse(f.read())
             return {node.name for node in ast.walk(tree)
-                    if isinstance(node, ast.FunctionDef)}
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
         except Exception as e:
             logger.error(f"提取函数失败: {e}")
             return set()

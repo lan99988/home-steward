@@ -15,11 +15,11 @@
 | Phase 2.3 | `registry.py` — Skill 仓库 | ✅ Frozen | 26 |
 | **合计** | **核心模块** | **✅ 冻结** | **≈75** |
 
-| 指标 | 目标 |
-|:----|:----:|
-| 项目级覆盖率 (fail_under) | ≥ 60% |
-| 核心模块 (arbiter/runtime/registry) | ≥ 90% |
-| 下一版本 | v1.1 — health/quality/sandbox/integration |
+| 指标 | 当前 | 目标 |
+|:----|:----:|:----:|
+| 项目级覆盖率 (fail_under) | 31% (v1.0) | 30% → 60% → 80% |
+| 核心模块 (arbiter/runtime/registry) | 98% / 99% / 94% | ≥ 90% |
+| 下一版本 | — | v1.1 — health/quality/sandbox/integration |
 
 ---
 
@@ -451,11 +451,15 @@ Code Review 中检查测试时:
 
 ### 5.3 Coverage 演进策略
 
+当前覆盖率 31%（3/11 模块已测）。随着 v1.1 逐步覆盖剩余 8 个模块，fail_under 阶梯递增：
+
 ```text
-v1.0 (Phase 2 完成):    fail_under = 60
-v1.1 (剩余 8 模块):      fail_under = 70
-v1.2 (集成测试加入):      fail_under = 80
+v1.0 (Phase 2, 3 模块):     fail_under = 30  ← 当前
+v1.1 (剩余 8 模块 + v1.0):    fail_under = 60
+v1.2 (集成测试加入):          fail_under = 80
 ```
+
+每次提升前需确保新增模块的测试已达到或超过该模块的目标覆盖率。
 
 每个版本递增 fail_under，防止团队长期停留在 60% 不再增长。每次提升前需确保当前基线稳定。
 

@@ -62,3 +62,12 @@ backend/data/memory/
 # Backup files
 *.bak
 *.bak[0-9]
+
+# Shell history (Claude session history, not part of the project)
+.history/
+
+# Coverage reports
+.coverage
+backend/.coverage
+htmlcov/
+coverage/
