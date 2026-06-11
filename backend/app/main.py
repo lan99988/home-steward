@@ -72,6 +72,22 @@ async def lifespan(app: FastAPI):
         except Exception:
             pass
 
+    # ===== Ollama 健康检测 =====
+    try:
+        import httpx
+        ollama_ok = await local_llm.check_health()
+        if ollama_ok:
+            logger.info("🧠 Ollama 已就绪 ✅ — LLM 通道可用")
+        else:
+            logger.info("⚠️ Ollama 未检测到 — LLM 通道不可用，快速通道继续工作")
+            logger.info("   💡 安装: ollama pull qwen3:7b  (或运行 scripts/setup_model.py)")
+    except Exception:
+        logger.info("⚠️ Ollama 检测失败 — LLM 通道不可用")
+
+    # 将 local_llm 注入舒适度润色器
+    from app.execution.comfort import comfort_polisher
+    comfort_polisher.llm = local_llm
+
     skill_registry.discover_builtin()
     logger.info(f"✅ 已发现 {len(skill_registry.skills)} 个内置 Skill")
 
