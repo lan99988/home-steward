@@ -131,3 +131,8 @@
 /systematic-debugging MQTT 连接不稳定，帮我排查
 /writing-plans 帮我写一份 Phase 2 Skill 系统的实现计划
 ```
+
+## Notes
+
+- All Phases 1-3 complete: Test coverage (94%), frontend UI, voice control, Sanitizer, comfort engine, reminder system, LLM health check
+- Next: Phase 4 (multi-user, device auto-discovery) / Phase 5 (self-evolution)
